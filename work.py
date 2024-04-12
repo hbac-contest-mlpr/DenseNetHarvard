@@ -1,113 +1,127 @@
-# using https://arxiv.org/pdf/1608.06993.pdf
-
+# https://github.com/StChenHaoGitHub/1D-deeplearning-model-pytorch/blob/main/DenseNet.py
 import torch
 import torch.nn as nn
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
-
 
 class DenseLayer(nn.Module):
-    def __init__(self, in_channels, growth_rate, bottleneck_size, kernel_size):
-        super().__init__()
-        self.use_bottleneck = bottleneck_size > 0
-        self.num_bottleneck_output_filters = growth_rate * bottleneck_size
-        if self.use_bottleneck:
-            self.bn2 = nn.BatchNorm1d(in_channels)
-            self.act2 = nn.ReLU(inplace=True)
-            self.conv2 = nn.Conv1d(
-                in_channels, 
-                self.num_bottleneck_output_filters,
-                kernel_size=1,
-                stride=1)
-        self.bn1 = nn.BatchNorm1d(self.num_bottleneck_output_filters)
-        self.act1 = nn.ReLU(inplace=True)
-        self.conv1 = nn.Conv1d(
-            self.num_bottleneck_output_filters,
-            growth_rate,
-            kernel_size=kernel_size,
-            stride=1, 
-            dilation=1, 
-            padding=kernel_size // 2)
+    def __init__(self,in_channels,middle_channels=128,out_channels=32): # should we put middle_channels here?
         
-    def forward(self, x):
-        if self.use_bottleneck:
-            x = self.bn2(x)
-            x = self.act2(x)
-            x = self.conv2(x)
-        x = self.bn1(x)
-        x = self.act1(x)
-        x = self.conv1(x)
-        return x
-
-class DenseBlock(nn.ModuleDict):
-    '''
-    '''
-    def __init__(self, num_layers, in_channels, growth_rate, kernel_size, bottleneck_size):
-        super().__init__()
-        self.num_layers = num_layers
-        for i in range(self.num_layers):
-            self.add_module(f'denselayer{i}', 
-                DenseLayer(in_channels + i * growth_rate, 
-                           growth_rate, 
-                           bottleneck_size, 
-                           kernel_size))
-
-    def forward(self, x):
-        layer_outputs = [x]
-        for _, layer in self.items():
-            x = layer(x)
-            layer_outputs.append(x)
-            x = torch.cat(layer_outputs, dim=1)
-        return x
-    
-
-class TransitionBlock(nn.Module):
-    '''
-    '''
-    def __init__(self, in_channels, out_channels):
-        super().__init__()
-        self.bn = nn.BatchNorm1d(in_channels)
-        self.act = nn.ReLU(inplace=True)
-        self.conv = nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=1, dilation=1)
-        self.pool = nn.AvgPool1d(kernel_size=2, stride=2)
-    
-    def forward(self, x):
-        x = self.bn(x)
-        x = self.act(x)
-        x = self.conv(x)
-        x = self.pool(x)
-        return x
-    
-
-class DenseNet1d(nn.Module):
-
-    def __init__(
-        self, 
-        growth_rate: int = 32,
-        block_config: tuple = (6, 12, 24, 16),
-        num_init_features: int = 64,
-        bottleneck_size: int = 4,
-        kernel_size: int = 3, 
-        in_channels: int = 3,
-        num_classes: int = 1,
-        reinit: bool = True,
-    ):
-        super().__init__()
-        
-        self.features = nn.Sequential(
-        nn.Conv1d(
-            in_channels, num_init_features, 
-            kernel_size=7, stride=2, padding=3, dilation=1),
-        nn.BatchNorm1d(num_init_features),
-        nn.ReLU(inplace=True),
-        nn.MaxPool1d(kernel_size=3, stride=2, padding=1),
+        super(DenseLayer, self).__init__()
+        self.layer = nn.Sequential(
+            nn.Conv1d(in_channels,out_channels,1),
+            nn.BatchNorm1d(out_channels),
+            nn.ReLU(inplace=True)
+            # nn.BatchNorm1d(in_channels),
+            # nn.ReLU(inplace=True),
+            # nn.Conv1d(in_channels,middle_channels,1),
+            # nn.BatchNorm1d(middle_channels),
+            # nn.ReLU(inplace=True),
+            # nn.Conv1d(middle_channels,out_channels,3,padding=1)
         )
-        num_features = num_init_features
-        for i, num_layers in enumerate(block_config):
-            block = DenseBlock(
-                num_layers=num_layers,
-                in_channels=num_features,
-                growth_rate=growth_rate,
-                kernel_size=kernel_size,
-                bottleneck_size=bottleneck_size,
-            )
+    
+    def forward(self,x):
+        return torch.cat([x,self.layer(x)],dim=1)
+
+
+class DenseBlock(nn.Sequential):
+    def __init__(self,layer_num,growth_rate,in_channels,middle_channels=128):
+        super(DenseBlock, self).__init__()
+        for i in range(layer_num):
+            layer = DenseLayer(in_channels+i*growth_rate,middle_channels,growth_rate)
+            self.add_module('denselayer%d'%(i),layer)
+
+class Transition(nn.Sequential):
+    def __init__(self,channels):
+        super(Transition, self).__init__()
+        self.add_module('norm',nn.BatchNorm1d(channels))
+        self.add_module('relu',nn.ReLU(inplace=True))
+        self.add_module('conv',nn.Conv1d(channels,channels//2,3,padding=1))
+        self.add_module('Avgpool',nn.AvgPool1d(2))
+
+class ResidualBlock(nn.Module):
+    def __init__(self,in_channels,out_channels,stride=1):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = nn.Sequential(
+                                nn.Conv1d(in_channels, out_channels, kernel_size = 3, stride = stride, padding = 1),
+                                nn.BatchNorm1d(out_channels),
+                                nn.ReLU())
+        self.conv2 = nn.Sequential(
+                        nn.Conv1d(out_channels, out_channels, kernel_size = 3, stride = 1, padding = 1),
+                        nn.BatchNorm1d(out_channels))
+        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
+        self.out_channels = out_channels
+        
+    def forward(self, x):
+        residual = x
+        out = self.conv1(x)
+        out = self.conv2(out)
+        out += residual
+        out = self.relu(out)
+        return out
+
+        
+class DenseNet(nn.Module):
+    # def __init__(self,layer_num=(6,12,24,16),growth_rate=32,init_features=64,in_channels=1,middele_channels=128,classes=5):
+    def __init__(self,layer_num=(5,5,5,5),growth_rate=32,init_features=64,in_channels=1,middele_channels=128,classes=5):
+        super(DenseNet, self).__init__()
+        self.feature_channel_num=init_features
+        self.conv=nn.Conv1d(in_channels,self.feature_channel_num,7,2,3)
+        self.norm=nn.BatchNorm1d(self.feature_channel_num)
+        self.relu=nn.ReLU()
+        self.maxpool=nn.MaxPool1d(3,2,1)
+
+        self.DenseBlock1=DenseBlock(layer_num[0],growth_rate,self.feature_channel_num,middele_channels)
+        self.feature_channel_num=self.feature_channel_num+layer_num[0]*growth_rate
+        self.Transition1=Transition(self.feature_channel_num)
+
+        self.DenseBlock2=DenseBlock(layer_num[1],growth_rate,self.feature_channel_num//2,middele_channels)
+        self.feature_channel_num=self.feature_channel_num//2+layer_num[1]*growth_rate
+        self.Transition2 = Transition(self.feature_channel_num)
+
+        self.DenseBlock3 = DenseBlock(layer_num[2],growth_rate,self.feature_channel_num//2,middele_channels)
+        self.feature_channel_num=self.feature_channel_num//2+layer_num[2]*growth_rate
+        self.Transition3 = Transition(self.feature_channel_num)
+
+        self.DenseBlock4 = DenseBlock(layer_num[3],growth_rate,self.feature_channel_num//2,middele_channels)
+        self.feature_channel_num=self.feature_channel_num//2+layer_num[3]*growth_rate
+
+        self.avgpool=nn.AdaptiveAvgPool1d(1)
+
+        self.classifer = nn.Sequential(
+            nn.Linear(self.feature_channel_num, self.feature_channel_num//2),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(self.feature_channel_num//2, classes),
+
+        )
+
+
+    def forward(self,x):
+        x = self.conv(x)
+        x = self.norm(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.DenseBlock1(x)
+        x = self.Transition1(x)
+
+        x = self.DenseBlock2(x)
+        x = self.Transition2(x)
+
+        x = self.DenseBlock3(x)
+        x = self.Transition3(x)
+
+        x = self.DenseBlock4(x)
+        x = self.avgpool(x)
+        x = x.view(-1,self.feature_channel_num)
+        x = self.classifer(x)
+
+        return x
+
+
+
+if __name__ == '__main__':
+    input = torch.randn(size=(1,1,224))
+    model = DenseNet(layer_num=(6,12,24,16),growth_rate=32,in_channels=1,classes=5)
+    output = model(input)
+    print(output.shape)
