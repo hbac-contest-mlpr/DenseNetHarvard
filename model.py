@@ -21,7 +21,6 @@ class DenseLayer(nn.Module):
     def forward(self,x):
         return torch.cat([x,self.layer(x)],dim=1)
 
-
 class DenseBlock(nn.Sequential):
     def __init__(self,layer_num,growth_rate,in_channels,middle_channels=128):
         super(DenseBlock, self).__init__()
@@ -59,10 +58,8 @@ class ResidualBlock(nn.Module):
         out = self.relu(out)
         return out
 
-        
 class DenseNet(nn.Module):
-    # def __init__(self,layer_num=(6,12,24,16),growth_rate=32,init_features=64,in_channels=1,middele_channels=128,classes=5):
-    def __init__(self,layer_num=(5,5,5,5),growth_rate=32,init_features=64,in_channels=1,middele_channels=128,classes=5):
+    def __init__(self,layer_num=(6,12,24,16),growth_rate=32,init_features=64,in_channels=1,middele_channels=128,classes=5):
         super(DenseNet, self).__init__()
         self.feature_channel_num=init_features
         self.conv=nn.Conv1d(in_channels,self.feature_channel_num,7,2,3)
@@ -117,11 +114,3 @@ class DenseNet(nn.Module):
         x = self.classifer(x)
 
         return x
-
-
-
-if __name__ == '__main__':
-    input = torch.randn(size=(1,1,224))
-    model = DenseNet(layer_num=(6,12,24,16),growth_rate=32,in_channels=1,classes=5)
-    output = model(input)
-    print(output.shape)
