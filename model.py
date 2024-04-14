@@ -7,15 +7,12 @@ class DenseLayer(nn.Module):
         
         super(DenseLayer, self).__init__()
         self.layer = nn.Sequential(
-            nn.Conv1d(in_channels,out_channels,1),
-            nn.BatchNorm1d(out_channels),
-            nn.ReLU(inplace=True)
-            # nn.BatchNorm1d(in_channels),
-            # nn.ReLU(inplace=True),
-            # nn.Conv1d(in_channels,middle_channels,1),
-            # nn.BatchNorm1d(middle_channels),
-            # nn.ReLU(inplace=True),
-            # nn.Conv1d(middle_channels,out_channels,3,padding=1)
+            nn.BatchNorm1d(in_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(in_channels,middle_channels,1),
+            nn.BatchNorm1d(middle_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(middle_channels,out_channels,3,padding=1)
         )
     
     def forward(self,x):
