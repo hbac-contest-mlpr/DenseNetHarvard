@@ -6,8 +6,9 @@ import torch.nn as nn
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import dataloader
-device  = 'cuda' if torch.cuda.is_available() else 'cpu'
-# device = 'cpu'
+import time
+# device  = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cpu'
 
 
 n_epochs = 10
@@ -32,7 +33,7 @@ y_test = torch.from_numpy(y_test).to(device)
 
 #to do 
 for epoch in range(n_epochs):
-    
+    t0 = time.time()
     y_pred = model(x_train) #forward pass 
     loss = loss_fn(y_pred,y_train) # calculate loss
     
@@ -49,4 +50,4 @@ for epoch in range(n_epochs):
         
         
     # if epoch % 100 == 0:
-    print(f"Epoch: {epoch} | Loss: {loss:.5f} | Test loss: {test_loss:.5f}")
+    print(f"Epoch: {epoch} | Loss: {loss:.5f} | Test loss: {test_loss:.5f} | Time: {time.time()-t0:.2f} s")
