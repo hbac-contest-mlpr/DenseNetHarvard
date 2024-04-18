@@ -24,18 +24,14 @@ def load_data(no_of_eeg_id = 100,no_of_subid = 4):
     df['class_name'] = df.expert_consensus.copy()
     df['class_label'] = df.expert_consensus.map(CFG.name2label)
 
-    # Test
-    test_df = pd.read_csv(f'{BASE_PATH}/test.csv')
-    test_df['eeg_path'] = f'{BASE_PATH}/test_eegs/'+test_df['eeg_id'].astype(str)+'.parquet'
-
     df_counts = df.groupby('eeg_id')["eeg_id"].count()
-    df_filtered = df[df['eeg_id'].isin(df_counts[df_counts >= no_of_subid].index)]
+    df_filtered = df[df['eeg_id'].isin(df_counts[df_counts >= no_of_subid].index)].copy()
     list_of_eegs = df_filtered.groupby('eeg_id')["eeg_id"].count().index.tolist()
     x =[]
     y = []
     eeg_arr = {}
     class_votes_names = ["gpd_vote","grda_vote","lpd_vote","lrda_vote","other_vote","seizure_vote"]
-    df_filtered["softmax"] = df_filtered[class_votes_names].apply(lambda x: softmax(x.tolist()),axis=1) 
+    df_filtered.loc[:,"softmax"] = df_filtered[class_votes_names].apply(lambda x: softmax(x.tolist()),axis=1) 
     for eeg_id in tqdm(list_of_eegs[0:no_of_eeg_id]):
         df_multiple = df_filtered[df_filtered['eeg_id']==eeg_id]
         parquet_path = f'{BASE_PATH}/train_eegs/{eeg_id}.parquet'

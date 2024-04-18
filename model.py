@@ -56,7 +56,7 @@ class ResidualBlock(nn.Module):
         return out
 
 class DenseNet(nn.Module):
-    def __init__(self,layer_num=(6,12,24,16),growth_rate=32,init_features=64,in_channels=1,middele_channels=128,classes=5):
+    def __init__(self,layer_num=(6,12,24,16),growth_rate=32,init_features=64,in_channels=1,middle_channels=128,classes=5):
         super(DenseNet, self).__init__()
         self.feature_channel_num=init_features
         self.conv=nn.Conv1d(in_channels,self.feature_channel_num,7,2,3)
@@ -64,19 +64,19 @@ class DenseNet(nn.Module):
         self.relu=nn.ReLU()
         self.maxpool=nn.MaxPool1d(3,2,1)
 
-        self.DenseBlock1=DenseBlock(layer_num[0],growth_rate,self.feature_channel_num,middele_channels)
+        self.DenseBlock1=DenseBlock(layer_num[0],growth_rate,self.feature_channel_num,middle_channels)
         self.feature_channel_num=self.feature_channel_num+layer_num[0]*growth_rate
         self.Transition1=Transition(self.feature_channel_num)
 
-        self.DenseBlock2=DenseBlock(layer_num[1],growth_rate,self.feature_channel_num//2,middele_channels)
+        self.DenseBlock2=DenseBlock(layer_num[1],growth_rate,self.feature_channel_num//2,middle_channels)
         self.feature_channel_num=self.feature_channel_num//2+layer_num[1]*growth_rate
         self.Transition2 = Transition(self.feature_channel_num)
 
-        self.DenseBlock3 = DenseBlock(layer_num[2],growth_rate,self.feature_channel_num//2,middele_channels)
+        self.DenseBlock3 = DenseBlock(layer_num[2],growth_rate,self.feature_channel_num//2,middle_channels)
         self.feature_channel_num=self.feature_channel_num//2+layer_num[2]*growth_rate
         self.Transition3 = Transition(self.feature_channel_num)
 
-        self.DenseBlock4 = DenseBlock(layer_num[3],growth_rate,self.feature_channel_num//2,middele_channels)
+        self.DenseBlock4 = DenseBlock(layer_num[3],growth_rate,self.feature_channel_num//2,middle_channels)
         self.feature_channel_num=self.feature_channel_num//2+layer_num[3]*growth_rate
 
         self.avgpool=nn.AdaptiveAvgPool1d(1)
@@ -86,7 +86,7 @@ class DenseNet(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(self.feature_channel_num//2, classes),
-
+            nn.Softmax(dim=1)
         )
 
 
