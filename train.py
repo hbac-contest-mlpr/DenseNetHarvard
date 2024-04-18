@@ -6,13 +6,9 @@ import torch.nn as nn
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import dataloader
-# device  = 'cuda' if torch.cuda.is_available() else 'cpu'
-device = 'cpu'
+device  = 'cuda' if torch.cuda.is_available() else 'cpu'
+# device = 'cpu'
 
-def accuracy_fn(y_true, y_pred):
-    correct = torch.eq(y_true, y_pred).sum().item() # torch.eq() calculates where two tensors are equal
-    acc = (correct / len(y_pred)) * 100 
-    return acc
 
 n_epochs = 10
 lr = 0.001
@@ -39,7 +35,6 @@ for epoch in range(n_epochs):
     
     y_pred = model(x_train) #forward pass 
     loss = loss_fn(y_pred,y_train) # calculate loss
-    acc = accuracy_fn(y_true=y_train,  y_pred=y_pred) # calculate accuracy
     
     loss.backward() # backward pass
     
@@ -51,8 +46,7 @@ for epoch in range(n_epochs):
         test_pred = model(x_test) # forward pass
         
         test_loss = loss_fn(test_pred,y_test) # calculate loss
-        test_acc = accuracy_fn(y_true=y_test,y_pred=test_pred) # calculate accuracy
         
         
     # if epoch % 100 == 0:
-    print(f"Epoch: {epoch} | Loss: {loss:.5f}, Accuracy: {acc:.2f}% | Test loss: {test_loss:.5f}, Test acc: {test_acc:.2f}%")
+    print(f"Epoch: {epoch} | Loss: {loss:.5f} | Test loss: {test_loss:.5f}")
