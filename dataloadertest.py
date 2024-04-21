@@ -32,6 +32,7 @@ def montage_from_eeg(eeg):
             x = eeg[COLS[kk]].values - eeg[COLS[kk+1]].values
             signals +=x 
         signals = np.array([i for i in signals if not np.isnan(i)])
+        
         if k == 0:
             montage = signals
         else:
@@ -63,20 +64,19 @@ def load_data(no_of_eeg_id = 100,no_of_subid = 3):
         eeg_data = montage_from_eeg(eeg_data)
 
         # testing montage
-        for i in range(0,len_df-1):
-            total_eegs_taken+=1
+        for i in range(0,len_df):
             eeg_label_offset_seconds=df_multiple[df_multiple["eeg_sub_id"]==i]["eeg_label_offset_seconds"].values[0]
             start_ind_sub_data = int(eeg_label_offset_seconds*sampling_rate)
             end_ind_sub_data = int((eeg_label_offset_seconds + 50) * sampling_rate)
             eeg_sub_data = eeg_data[:,start_ind_sub_data:end_ind_sub_data]
-            print(eeg_sub_data.shape)
-            x.append(eeg_sub_data)
-            y.append(df_multiple[df_multiple["eeg_sub_id"]==i]["softmax"].values[0])
-            if np.count_nonzero(np.isnan(eeg_sub_data)) > 0:
-                print("NAN values found")
-                quit()
+            if eeg_sub_data.shape[1] == 10000:
+                x.append(eeg_sub_data)
+                total_eegs_taken+=1 
+                y.append(df_multiple[df_multiple["eeg_sub_id"]==i]["softmax"].values[0])
+
             
     print(f"Total unique eegs taken: {no_of_eeg_id} , Total eegs taken (counting sub_ids): {total_eegs_taken}")
+    print(len(x))
     X = np.array(x)
     Y = np.array(y)
     return X,Y

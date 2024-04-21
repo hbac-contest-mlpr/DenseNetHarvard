@@ -15,7 +15,7 @@ lr = 0.001
 batch_size = 32
 
 torch.manual_seed(0)
-X,Y = dataloadertest.load_data(10,3)
+X,Y = dataloadertest.load_data(100,3)
 X = torch.from_numpy(X).to(device, dtype=torch.float32)
 Y = torch.from_numpy(Y).to(device)
 print(X.shape)
