@@ -86,7 +86,7 @@ class DenseNet(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(self.feature_channel_num//2, classes),
-            nn.Softmax(dim=1)
+            nn.LogSoftmax(dim=1)
         )
 
 
