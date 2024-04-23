@@ -119,7 +119,7 @@ def load_cleaned_data(num_samples: int = -1) -> tuple[np.ndarray, np.ndarray]:
     """
     num_samples = -1 will load all samples
     """
-    
+
     metadata = pd.read_csv(BASE_PATH / "train.csv")
     data_directory = BASE_PATH / "train_montage_cleaned_10k"
 
@@ -155,7 +155,13 @@ def load_cleaned_data(num_samples: int = -1) -> tuple[np.ndarray, np.ndarray]:
         x = row_info[["gpd_vote","grda_vote","lpd_vote","lrda_vote","other_vote","seizure_vote"]].tolist()
         row_info.loc[["gpd_vote","grda_vote","lpd_vote","lrda_vote","other_vote","seizure_vote"]] = softmax(x)
         
-        X = np.load(file_path)
+        try:
+            X = np.load(file_path)
+        except ValueError:
+            tqdm.write(f"Error loading {file_path}")
+            c += 1
+            continue
+
         y = row_info[["gpd_vote","grda_vote","lpd_vote","lrda_vote","other_vote","seizure_vote"]].values
         y = y.astype(np.float32)
 

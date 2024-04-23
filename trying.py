@@ -26,7 +26,9 @@ X = torch.from_numpy(X).to(device, dtype=torch.float32)
 Y = torch.from_numpy(Y).to(device)
 print(X.shape)
 print(Y.shape)
+
 dataset = TensorDataset(X, Y)
+
 train_dataset, test_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
 train_batches = DataLoader(train_dataset, batch_size=batch_size)
 test_batches = DataLoader(test_dataset, batch_size=batch_size)
