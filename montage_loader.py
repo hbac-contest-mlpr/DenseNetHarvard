@@ -22,6 +22,10 @@ class PreprocessedEEGDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
+
+        if isinstance(idx, slice):
+            raise NotImplementedError("Slicing is not supported")
+        
         metadata = pd.read_csv(BASE_PATH / "train.csv")
         data_path = self.data_paths[idx]
 

@@ -1,6 +1,7 @@
 # https://github.com/StChenHaoGitHub/1D-deeplearning-model-pytorch/blob/main/DenseNet.py
 import torch
 import torch.nn as nn
+import torchinfo
 
 
 class DenseLayer(nn.Module):
@@ -145,3 +146,10 @@ class DenseNet(nn.Module):
         x = self.classifer(x)
 
         return x
+
+
+if __name__ == "__main__":
+    model = DenseNet(
+        layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
+    )  # model
+    torchinfo.summary(model)
