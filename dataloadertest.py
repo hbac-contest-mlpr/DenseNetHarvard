@@ -9,7 +9,6 @@ BASE_PATH = Path(
     "/Users/pranjalrastogi/Desktop/SEM4/MLPR/project/data/competition-data"
 )
 
-
 class CFG:
     num_classes = 6  # Number of classes in the dataset
     class_names = ["Seizure", "LPD", "GPD", "LRDA", "GRDA", "Other"]
@@ -159,6 +158,8 @@ def load_cleaned_data(num_samples: int = -1) -> tuple[np.ndarray, np.ndarray]:
             X = np.load(file_path)
         except ValueError:
             tqdm.write(f"Error loading {file_path}")
+            # so that we can skip this file next time too!
+            file_path.rename(file_path.with_suffix(".npy.bak"))
             c += 1
             continue
 
