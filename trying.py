@@ -15,7 +15,7 @@ lr = 0.001
 batch_size = 32
 
 torch.manual_seed(0)
-X,Y = dataloadertest.load_data(100,3)
+X,Y = dataloadertest.load_data(150,3)
 X = torch.from_numpy(X).to(device, dtype=torch.float32)
 Y = torch.from_numpy(Y).to(device)
 print(X.shape)
@@ -59,7 +59,7 @@ for epoch in range(n_epochs):
     print(f"Time: {time.time()-t0:.2f} s | Test loss: {test_loss:.5f} ")
     
     #saving checkpoint
-    if epoch and epoch % 15 == 0:
+    if epoch and epoch % 1 == 0:
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
