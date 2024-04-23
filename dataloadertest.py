@@ -115,8 +115,11 @@ def load_data(no_of_eeg_id=100, no_of_subid=3):
     return X, Y
 
 
-def load_cleaned_data(num_samples: int = 1000) -> tuple[np.ndarray, np.ndarray]:
-
+def load_cleaned_data(num_samples: int = -1) -> tuple[np.ndarray, np.ndarray]:
+    """
+    num_samples = -1 will load all samples
+    """
+    
     metadata = pd.read_csv(BASE_PATH / "train.csv")
     data_directory = BASE_PATH / "train_montage_cleaned_10k"
 
@@ -125,6 +128,10 @@ def load_cleaned_data(num_samples: int = 1000) -> tuple[np.ndarray, np.ndarray]:
     Xs = []
     ys = []
     c = 0
+
+    if num_samples == -1:
+        num_samples = len(data_paths)
+    
     for file_path in tqdm(data_paths, total=num_samples):
         if c == num_samples:
             break

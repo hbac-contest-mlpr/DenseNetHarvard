@@ -20,9 +20,7 @@ SAVE_EVERY = 10
 
 torch.manual_seed(0)
 
-TO_LOAD = 150
-
-X, Y = dataloadertest.load_cleaned_data(TO_LOAD)
+X, Y = dataloadertest.load_cleaned_data(-1)  # -1 loads all samples
 
 X = torch.from_numpy(X).to(device, dtype=torch.float32)
 Y = torch.from_numpy(Y).to(device)
