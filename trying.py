@@ -68,12 +68,14 @@ for epoch in range(MAX_EPOCHS):
 
     t0 = time.time()
 
+    overall_loss = 0
     for batch_idx, (x_train, y_train) in enumerate(train_batches):
         x_train = x_train.to(device)
         y_train = y_train.to(device)
     
         y_pred = model(x_train)  # forward pass
         loss = loss_fn(y_pred, y_train)  # calculate loss
+        overall_loss += loss
         optimizer.zero_grad()  # zero the gradients
 
         loss.backward()  # backward pass
@@ -81,7 +83,9 @@ for epoch in range(MAX_EPOCHS):
         optimizer.step()  # update weights
 
         if batch_idx % PRINT_EVERY_BATCH == 0:
-            print(f"\t Batch_idx: {batch_idx} | Loss: {loss:.5f}")
+            print(f"\t Batch_idx: {batch_idx} | Batch Loss: {loss:.5f}")
+    overall_loss /= len(train_batches)
+    print(f"Overall Train Loss: {overall_loss:.5f}")
 
     model.eval()  # set model to evaluation mode
     with torch.inference_mode():
@@ -94,7 +98,7 @@ for epoch in range(MAX_EPOCHS):
             test_loss += loss_fn(test_pred, y_test)  # calculate loss
         test_loss /= len(test_batches)
 
-    print(f"Test loss: {test_loss:.5f}")
+    print(f"Overall Test loss: {test_loss:.5f}")
 
     # saving checkpoint
     if epoch and epoch % SAVE_EVERY == 0:
