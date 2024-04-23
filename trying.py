@@ -18,19 +18,19 @@ TEST_SIZE = 0.3
 LEARNING_RATE = 0.001
 
 # epochs stuff
-MAX_EPOCHS = 10
+MAX_EPOCHS = 20
 SAVE_EVERY = 2
 
 # memory stuff
 BATCH_SIZE = 32
 
 # model stuff
-MODEL_PREFIX = "data_50only_"  # please add _ at the end
-USE_SUBSET = True
-LEN_SUBSET = 100
+MODEL_PREFIX = "all_data_"  # please add _ at the end
+USE_SUBSET = False
+LEN_SUBSET = 100 # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
 # so, set PRINT_EVERY_BATCH properly!
-PRINT_EVERY_BATCH = 1
+PRINT_EVERY_BATCH = 300
 
 torch.manual_seed(0)
 
