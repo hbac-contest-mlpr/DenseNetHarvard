@@ -30,7 +30,7 @@ USE_SUBSET = False
 LEN_SUBSET = 100 # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
 # so, set PRINT_EVERY_BATCH properly!
-PRINT_EVERY_BATCH = 1
+PRINT_EVERY_BATCH = 100
 
 NUM_WORKERS = 4
 
