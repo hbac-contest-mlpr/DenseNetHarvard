@@ -133,7 +133,7 @@ if __name__ == "__main__":
     # print(f"Test loss for singular sample: {test_losses[0]:.5f}")
     # print(f"Test loss for batch of samples: {test_losses[1]:.5f}")
 
-    classification_result = complete_tests(model, loss_fn, max_batches=200)
+    classification_result = complete_tests(model, loss_fn, max_batches=800)
     print(f"Test loss for complete dataset: {classification_result[0]:.5f}")
     
     print(classification_report(classification_result[1], classification_result[2]))
