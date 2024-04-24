@@ -119,7 +119,7 @@ def complete_tests(model, loss_fn, batch_size=32, test_size_used=0.3, test_on_tr
             if batch_idx >= max_batches:
                 break
 
-        test_loss /= len(data_loader)
+        test_loss /= max_batches
 
     return test_loss, np.array(classes_true), np.array(classes_pred)
 
