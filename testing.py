@@ -1,6 +1,7 @@
 import numpy as np
 from model import DenseNet
 import torch
+from torch.utils.data import DataLoader, random_split, Subset
 import torch.nn as nn
 from montage_loader import PreprocessedEEGDataset
 import torchinfo
@@ -76,20 +77,26 @@ def sample_tests(model, loss_fn):
 
     return test_loss_singular, test_loss_batch
 
-def complete_tests(model, loss_fn, batch_size=32):
+def complete_tests(model, loss_fn, batch_size=128, test_size_used=0.3, test_on_train=False):
     dataset = PreprocessedEEGDataset("train_montage_cleaned_10k")
 
-    data_loader = torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size
+    torch.manual_seed(0)
+    _, test_dataset = random_split(dataset, [1 - test_size_used, test_size_used])
+    if test_on_train:
+        raise NotImplementedError("Test on train not implemented yet")
+    
+    # only test on test dataset (since seed is fixed, this will be consistent across runs)
+    data_loader = DataLoader(
+        test_dataset, batch_size=batch_size
     )
 
-    test_loss = 0.0
+    test_loss = 0
 
     classes_true = []
     classes_pred = []
 
     with torch.inference_mode():
-        for batch_idx, X, y in enumerate(tqdm(data_loader)):
+        for batch_idx, (X, y) in enumerate(tqdm(data_loader)):
 
             X = X.to(device)
             y = y.to(device)
@@ -100,7 +107,7 @@ def complete_tests(model, loss_fn, batch_size=32):
             classes_true.extend(np.argmax(y.cpu().detach().numpy(), axis=1))
 
             if batch_idx % 150 == 0:
-                tqdm.write(f"Batch {batch_idx}: Test batch loss: {test_loss:.5f}")
+                tqdm.write(f"Batch {batch_idx}: set loss: {test_loss:.5f}")
 
         test_loss /= len(data_loader)
 
