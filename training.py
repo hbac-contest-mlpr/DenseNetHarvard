@@ -25,7 +25,7 @@ SAVE_EVERY = 1
 BATCH_SIZE = 32
 
 # model stuff
-MODEL_PREFIX = "all_data_"  # please add _ at the end
+MODEL_PREFIX = "all_data_new_"  # please add _ at the end
 PRESAVED_MODEL_PATH = "./saved_models/all_data_18.pth"
 USE_SUBSET = False
 LEN_SUBSET = 100 # number of samples to use if USE_SUBSET is True
@@ -116,7 +116,7 @@ def main():
         print(f"Overall Test loss: {test_loss:.5f}")
 
         # saving checkpoint
-        if epoch and epoch % SAVE_EVERY == 0:
+        if epoch % SAVE_EVERY == 0:
             print(f"[green]Saving model at epoch {epoch}![/green]")
             torch.save(
                 {
