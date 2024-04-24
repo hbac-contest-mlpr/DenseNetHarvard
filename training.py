@@ -30,10 +30,10 @@ BATCH_SIZE = 32
 MODEL_PREFIX = "all_data_new_"  # please add _ at the end
 PRESAVED_MODEL_PATH = "./saved_models/all_data_18.pth"
 USE_SUBSET = False
-LEN_SUBSET = 100 # number of samples to use if USE_SUBSET is True
+LEN_SUBSET = 10 # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
 # so, set PRINT_EVERY_BATCH properly!
-PRINT_EVERY_BATCH = 100
+PRINT_EVERY_BATCH = 128
 
 NUM_WORKERS = 4
 
@@ -55,7 +55,7 @@ def print_params():
     print(f"Print Every Batch: {PRINT_EVERY_BATCH}")
     print(f"Number of Workers: {NUM_WORKERS}")
     print(f"Device: {device}")
-    print(f"Stats Save Path: {STATS_SAVE_PATH}")
+    print(f"Stats Save Path: '{STATS_SAVE_PATH}'")
     print(f"{'':=^80}")
 
 def main():
@@ -126,10 +126,11 @@ def main():
                 print(f"\t Batch_idx: {batch_idx} | Batch Loss: {loss:.5f} (time: {time.time()-bt:.2f}s | {time.time()-t0:.2f}s elapsed)")
             bt = time.time()
         overall_loss /= len(train_batches)
-        epoch_statistics["train_loss"] = overall_loss
+
+        epoch_statistics["train_loss"] = overall_loss.cpu().detach().numpy().tolist()
         epoch_statistics["train_time"] = time.time() - t0
-        epoch_statistics["train_classes"] = train_classes
-        epoch_statistics["pred_classes"] = pred_classes
+        epoch_statistics["train_true_classes"] = [int(x) for x in train_classes]
+        epoch_statistics["train_pred_classes"] = [int(x) for x in pred_classes]
         print(f"Overall Train Loss: {overall_loss:.5f}")
 
         with open(f"{STATS_SAVE_PATH}stats_{MODEL_PREFIX}{epoch}.json", "w") as f:
@@ -140,7 +141,7 @@ def main():
 
         epoch_statistics = {}
         with open(f"{STATS_SAVE_PATH}stats_{MODEL_PREFIX}{epoch}.json", "r") as f:
-            json.load(epoch_statistics, f)
+            epoch_statistics = json.load(f)
 
 
         model.eval()  # set model to evaluation mode
@@ -159,10 +160,10 @@ def main():
                 test_loss += loss_fn(test_pred, y_test)  # calculate loss
             test_loss /= len(test_batches)
 
-        epoch_statistics["test_loss"] = test_loss
+        epoch_statistics["test_loss"] = test_loss.cpu().detach().numpy().tolist()
         epoch_statistics["test_time"] = time.time() - tt0
-        epoch_statistics["test_classes"] = test_classes
-        epoch_statistics["pred_classes"] = pred_classes
+        epoch_statistics["test_true_classes"] = [int(x) for x in test_classes]
+        epoch_statistics["test_pred_classes"] = [int(x) for x in pred_classes]
         print(f"Overall Test loss: {test_loss:.5f}")
 
 
@@ -184,12 +185,11 @@ def main():
 
         t1 = time.time()
         epoch_statistics["epoch_time"] = t1 - t0
-        print(f"Time taken for entire epoch: {t1-t0:.2f}s\n")
-
         with open(f"{STATS_SAVE_PATH}stats_{MODEL_PREFIX}{epoch}.json", "w") as f:
             json.dump(epoch_statistics, f)
         
-        del epoch_statistics
+        print(f"Time taken for entire epoch: {t1-t0:.2f}s\n")
+        
         del test_classes
         del pred_classes
 
