@@ -11,6 +11,7 @@ from tqdm import tqdm
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
+import time
 
 if sys.platform == "darwin":
     device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -77,7 +78,7 @@ def sample_tests(model, loss_fn):
 
     return test_loss_singular, test_loss_batch
 
-def complete_tests(model, loss_fn, batch_size=128, test_size_used=0.3, test_on_train=False):
+def complete_tests(model, loss_fn, batch_size=32, test_size_used=0.3, test_on_train=False, max_batches=None):
     dataset = PreprocessedEEGDataset("train_montage_cleaned_10k")
 
     torch.manual_seed(0)
@@ -95,8 +96,14 @@ def complete_tests(model, loss_fn, batch_size=128, test_size_used=0.3, test_on_t
     classes_true = []
     classes_pred = []
 
+    if max_batches is None:
+        max_batches = len(data_loader)
+    else:
+        max_batches = min(max_batches, len(data_loader))
+    
     with torch.inference_mode():
-        for batch_idx, (X, y) in enumerate(tqdm(data_loader)):
+        t0 = time.time()
+        for batch_idx, (X, y) in enumerate(tqdm(data_loader, total=max_batches, desc="Testing")):
 
             X = X.to(device)
             y = y.to(device)
@@ -106,12 +113,15 @@ def complete_tests(model, loss_fn, batch_size=128, test_size_used=0.3, test_on_t
             classes_pred.extend(np.argmax(test_pred.cpu().detach().numpy(), axis=1))
             classes_true.extend(np.argmax(y.cpu().detach().numpy(), axis=1))
 
-            if batch_idx % 150 == 0:
-                tqdm.write(f"Batch {batch_idx}: set loss: {test_loss:.5f}")
+            if batch_idx % 100 == 0:
+                tqdm.write(f"Batch {batch_idx}: set loss: {test_loss:.5f} | time elapsed: {time.time() - t0:.2f}s")
+            
+            if batch_idx >= max_batches:
+                break
 
         test_loss /= len(data_loader)
 
-    return test_loss, classes_true, classes_pred
+    return test_loss, np.array(classes_true), np.array(classes_pred)
 
 LEARNING_RATE = 0.001
 MODEL_PATH = f"./saved_models/all_data_10.pth"
@@ -123,7 +133,7 @@ if __name__ == "__main__":
     # print(f"Test loss for singular sample: {test_losses[0]:.5f}")
     # print(f"Test loss for batch of samples: {test_losses[1]:.5f}")
 
-    classification_result = complete_tests(model, loss_fn)
+    classification_result = complete_tests(model, loss_fn, max_batches=200)
     print(f"Test loss for complete dataset: {classification_result[0]:.5f}")
     
     print(classification_report(classification_result[1], classification_result[2]))
