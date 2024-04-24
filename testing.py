@@ -138,6 +138,6 @@ if __name__ == "__main__":
     
     print(classification_report(classification_result[1], classification_result[2]))
     cm = confusion_matrix(classification_result[1], classification_result[2])
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(8, 8))
     sns.heatmap(cm, annot=True)
     plt.show()
