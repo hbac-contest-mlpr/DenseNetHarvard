@@ -6,6 +6,8 @@ from montage_loader import PreprocessedEEGDataset
 from torch.utils.data import DataLoader, random_split, Subset
 from rich import print
 import sys
+import json
+import numpy as np
 
 if sys.platform == "darwin":
     device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -35,8 +37,26 @@ PRINT_EVERY_BATCH = 100
 
 NUM_WORKERS = 4
 
+STATS_SAVE_PATH = "./stats/"  # trailing slash is important!
+
 torch.manual_seed(0)
 
+
+def print_params():
+    print(f"{' Hyperparameters ':=^80}")
+    print(f"Test Size: {TEST_SIZE}")
+    print(f"Learning Rate: {LEARNING_RATE}")
+    print(f"Max Epochs: {MAX_EPOCHS}")
+    print(f"Save Every: {SAVE_EVERY}")
+    print(f"Batch Size: {BATCH_SIZE}")
+    print(f"Model Prefix: {MODEL_PREFIX}")
+    print(f"Presaved Model Path: '{PRESAVED_MODEL_PATH}'")
+    print(f"Use Subset: {USE_SUBSET} (Length of Subset: {LEN_SUBSET})")
+    print(f"Print Every Batch: {PRINT_EVERY_BATCH}")
+    print(f"Number of Workers: {NUM_WORKERS}")
+    print(f"Device: {device}")
+    print(f"Stats Save Path: {STATS_SAVE_PATH}")
+    print(f"{'':=^80}")
 
 def main():
     dataset = PreprocessedEEGDataset("train_montage_cleaned_10k")  # dataset object
@@ -78,16 +98,22 @@ def main():
 
     for epoch in range(MAX_EPOCHS):
         print(f"Epoch: {epoch}")
-
+        epoch_statistics = {"epoch": epoch, "test_size": len(test_batches), "train_size": len(train_batches)}
         model.train()
 
         t0 = bt = time.time()
         overall_loss = 0
+        train_classes = []
+        pred_classes = []
         for batch_idx, (x_train, y_train) in enumerate(train_batches):
             x_train = x_train.to(device)
             y_train = y_train.to(device)
         
             y_pred = model(x_train)  # forward pass
+
+            train_classes.extend(list(np.argmax(y_pred.cpu().detach().numpy(), axis=1)))
+            pred_classes.extend(list(np.argmax(y_train.cpu().detach().numpy(), axis=1)))
+
             loss = loss_fn(y_pred, y_train)  # calculate loss
             overall_loss += loss
             optimizer.zero_grad()  # zero the gradients
@@ -100,9 +126,27 @@ def main():
                 print(f"\t Batch_idx: {batch_idx} | Batch Loss: {loss:.5f} (time: {time.time()-bt:.2f}s | {time.time()-t0:.2f}s elapsed)")
             bt = time.time()
         overall_loss /= len(train_batches)
+        epoch_statistics["train_loss"] = overall_loss
+        epoch_statistics["train_time"] = time.time() - t0
+        epoch_statistics["train_classes"] = train_classes
+        epoch_statistics["pred_classes"] = pred_classes
         print(f"Overall Train Loss: {overall_loss:.5f}")
 
+        with open(f"{STATS_SAVE_PATH}stats_{MODEL_PREFIX}{epoch}.json", "w") as f:
+            json.dump(epoch_statistics, f)
+        
+        del train_classes
+        del pred_classes
+
+        epoch_statistics = {}
+        with open(f"{STATS_SAVE_PATH}stats_{MODEL_PREFIX}{epoch}.json", "r") as f:
+            json.load(epoch_statistics, f)
+
+
         model.eval()  # set model to evaluation mode
+        tt0 = time.time()
+        test_classes = []
+        pred_classes = []
         with torch.inference_mode():
             test_loss = 0
             for batch_idx, (x_test, y_test) in enumerate(test_batches):
@@ -110,13 +154,21 @@ def main():
                 y_test = y_test.to(device)
 
                 test_pred = model(x_test)  # forward pass
+                test_classes.extend(list(np.argmax(test_pred.cpu().detach().numpy(), axis=1)))
+                pred_classes.extend(list(np.argmax(y_test.cpu().detach().numpy(), axis=1)))
                 test_loss += loss_fn(test_pred, y_test)  # calculate loss
             test_loss /= len(test_batches)
 
+        epoch_statistics["test_loss"] = test_loss
+        epoch_statistics["test_time"] = time.time() - tt0
+        epoch_statistics["test_classes"] = test_classes
+        epoch_statistics["pred_classes"] = pred_classes
         print(f"Overall Test loss: {test_loss:.5f}")
+
 
         # saving checkpoint
         if epoch % SAVE_EVERY == 0:
+            epoch_statistics["saved"] = True
             print(f"[green]Saving model at epoch {epoch}![/green]")
             torch.save(
                 {
@@ -127,12 +179,23 @@ def main():
                 },
                 f"./saved_models/{MODEL_PREFIX}{epoch}.pth",
             )
+        else:
+            epoch_statistics["saved"] = False
 
         t1 = time.time()
+        epoch_statistics["epoch_time"] = t1 - t0
         print(f"Time taken for entire epoch: {t1-t0:.2f}s\n")
+
+        with open(f"{STATS_SAVE_PATH}stats_{MODEL_PREFIX}{epoch}.json", "w") as f:
+            json.dump(epoch_statistics, f)
+        
+        del epoch_statistics
+        del test_classes
+        del pred_classes
 
     print(f"{' Training complete ':=^80}")
 
 
 if __name__ == "__main__":
+    print_params()
     main()
