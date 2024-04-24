@@ -18,14 +18,15 @@ TEST_SIZE = 0.3
 LEARNING_RATE = 0.001
 
 # epochs stuff
-MAX_EPOCHS = 20
-SAVE_EVERY = 2
+MAX_EPOCHS = 6
+SAVE_EVERY = 1
 
 # memory stuff
 BATCH_SIZE = 32
 
 # model stuff
 MODEL_PREFIX = "all_data_"  # please add _ at the end
+PRESAVED_MODEL_PATH = "./saved_models/all_data_18.pth"
 USE_SUBSET = False
 LEN_SUBSET = 100 # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
@@ -63,6 +64,14 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)  # optimizer
 
     model = model.to(device)
+
+    if PRESAVED_MODEL_PATH:
+        print(f"Trying to load model from '{PRESAVED_MODEL_PATH}'")
+        checkpoint = torch.load(PRESAVED_MODEL_PATH)
+
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
 
     print(f"Length of train_batches: {len(train_batches)}")
     print(f"Length of test_batches: {len(test_batches)}")
