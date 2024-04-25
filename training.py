@@ -27,8 +27,8 @@ SAVE_EVERY = 1
 BATCH_SIZE = 32
 
 # model stuff
-MODEL_PREFIX = "all_data_new_"  # please add _ at the end
-PRESAVED_MODEL_PATH = "./saved_models/all_data_18.pth"
+MODEL_PREFIX = "all_data_new2_"  # please add _ at the end
+PRESAVED_MODEL_PATH = "./saved_models/all_data_new_5.pth"
 USE_SUBSET = False
 LEN_SUBSET = 10 # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
@@ -49,7 +49,7 @@ def print_params():
     print(f"Max Epochs: {MAX_EPOCHS}")
     print(f"Save Every: {SAVE_EVERY}")
     print(f"Batch Size: {BATCH_SIZE}")
-    print(f"Model Prefix: {MODEL_PREFIX}")
+    print(f"Model Prefix: '{MODEL_PREFIX}'")
     print(f"Presaved Model Path: '{PRESAVED_MODEL_PATH}'")
     print(f"Use Subset: {USE_SUBSET} (Length of Subset: {LEN_SUBSET})")
     print(f"Print Every Batch: {PRINT_EVERY_BATCH}")
