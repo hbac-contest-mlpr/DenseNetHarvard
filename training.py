@@ -8,6 +8,7 @@ from rich import print
 import sys
 import json
 import numpy as np
+from utils import kaggle_loss_fn
 
 if sys.platform == "darwin":
     device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -81,6 +82,7 @@ def main():
     )  # model
 
     loss_fn = nn.KLDivLoss(reduction="batchmean")  # loss function
+    # loss_fn = kaggle_loss_fn
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)  # optimizer
 
     model = model.to(device)
