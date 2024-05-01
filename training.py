@@ -1,4 +1,5 @@
-from model import DenseNet
+# from model import DenseNet
+from epicmodel import DenseNet
 import torch
 import torch.nn as nn
 import time
@@ -77,8 +78,11 @@ def main():
         test_batches = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 
 
+    # model = DenseNet(
+    #     layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
+    # )  # model
     model = DenseNet(
-        layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
+        layer_num=(5), growth_rate=32, in_channels=4, classes=6
     )  # model
 
     loss_fn = nn.KLDivLoss(reduction="batchmean")  # loss function
