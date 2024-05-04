@@ -1,5 +1,5 @@
-# from model import DenseNet
-from epicmodel import DenseNet
+import model as oldmodel
+import epicmodel
 
 import torch
 import torch.nn as nn
@@ -80,10 +80,10 @@ def main():
         test_batches = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 
 
-    # model = DenseNet(
+    # model = oldmodel.DenseNet(
     #     layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
     # )  # model
-    model = DenseNet(
+    model = epicmodel.DenseNet(
         layer_num=(5,), growth_rate=32, in_channels=4, classes=6
     )  # model
 
@@ -122,6 +122,8 @@ def main():
             train_classes.extend(list(np.argmax(y_pred.cpu().detach().numpy(), axis=1)))
             pred_classes.extend(list(np.argmax(y_train.cpu().detach().numpy(), axis=1)))
 
+            print(f"y_pred: {y_pred.shape} | y_train: {y_train.shape}")
+            
             loss = loss_fn(y_pred, y_train)  # calculate loss
             overall_loss += loss
             optimizer.zero_grad()  # zero the gradients

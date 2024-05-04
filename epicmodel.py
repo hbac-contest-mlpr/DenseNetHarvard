@@ -90,6 +90,7 @@ class DenseNet(nn.Module):
         self.norm = nn.BatchNorm1d(self.feature_channel_num)
         self.relu = nn.ReLU()
         self.maxpool = nn.MaxPool1d(3, 2, 1)
+        self.maxpool_adaptive = nn.AdaptiveMaxPool1d(1)
 
         self.DenseBlock1 = DenseBlock(
             layer_num[0], growth_rate, self.feature_channel_num
@@ -159,7 +160,7 @@ class DenseNet(nn.Module):
         x = self.Transition3(x)
         x = self.FeatureAttentionModule3(x)
         x = self.ResidualBlock3(x)
-        x = self.maxpool(x)
+        x = self.maxpool_adaptive(x) 
 
         x = x.view(-1, self.feature_channel_num)
         x = self.classifer(x)
