@@ -96,6 +96,7 @@ class DenseNet(nn.Module):
         )
         self.feature_channel_num = self.feature_channel_num + layer_num[0] * growth_rate
         self.Transition1 = Transition(self.feature_channel_num)
+        
         self.FeatureAttentionModule = FeatureAttentionModule(self.feature_channel_num)
         self.feature_channel_num = self.feature_channel_num // 3
         self.ResidualBlock = ResidualBlock(

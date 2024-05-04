@@ -17,7 +17,7 @@ class PreprocessedEEGDataset(Dataset):
         
         self.data_paths = list(data_directory.glob("*.npy"))
         self.length = len(self.data_paths)
-x
+
     def __len__(self):
         return self.length
 

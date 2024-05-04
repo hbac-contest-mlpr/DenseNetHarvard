@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from model import DenseNet
+from epicmodel import DenseNet
 import torch
 from torch.utils.data import DataLoader, random_split, Subset
 import torch.nn as nn
@@ -23,7 +23,7 @@ else:
 def load_model(model_path="model.pth", print_summary=False):
 
     model = DenseNet(
-        layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
+        layer_num=(5,), growth_rate=32, in_channels=4, classes=6
     )  # model
     if print_summary:
         torchinfo.summary(model)
