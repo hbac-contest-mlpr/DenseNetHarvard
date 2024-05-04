@@ -2,7 +2,7 @@ from model import DenseNet
 import torch
 import torch.nn as nn
 import time
-from montage_loader import PreprocessedEEGDataset
+from montage_loader import PreprocessedDatasetSingular, PreprocessedEEGDataset
 from torch.utils.data import DataLoader, random_split, Subset
 from rich import print
 import sys
@@ -17,19 +17,19 @@ else:
     torch.cuda.empty_cache()
 
 # some hyperparameters
-TEST_SIZE = 0.3
-LEARNING_RATE = 0.001
+TEST_SIZE = 0.2
+LEARNING_RATE = 1e-5
 
 # epochs stuff
-MAX_EPOCHS = 6
-SAVE_EVERY = 1
+MAX_EPOCHS = 20
+SAVE_EVERY = 2
 
 # memory stuff
 BATCH_SIZE = 32
 
 # model stuff
-MODEL_PREFIX = "all_data_new2_"  # please add _ at the end
-PRESAVED_MODEL_PATH = "./saved_models/all_data_new_5.pth"
+MODEL_PREFIX = "all_wow_"  # please add _ at the end
+PRESAVED_MODEL_PATH = "./saved_models/all_singular_further_4.pth"
 USE_SUBSET = False
 LEN_SUBSET = 10 # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
@@ -60,7 +60,7 @@ def print_params():
     print(f"{'':=^80}")
 
 def main():
-    dataset = PreprocessedEEGDataset("train_montage_cleaned_10k")  # dataset object
+    dataset = PreprocessedDatasetSingular("train_montage_cleaned_10k")  # dataset object
 
 
     if USE_SUBSET:
