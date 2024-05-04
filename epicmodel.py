@@ -97,11 +97,36 @@ class DenseNet(nn.Module):
         self.feature_channel_num = self.feature_channel_num + layer_num[0] * growth_rate
         self.Transition1 = Transition(self.feature_channel_num)
         
-        self.FeatureAttentionModule = FeatureAttentionModule(self.feature_channel_num)
-        self.feature_channel_num = self.feature_channel_num // 3
-        self.ResidualBlock = ResidualBlock(
+        self.FeatureAttentionModule1 = FeatureAttentionModule(self.feature_channel_num//2)
+        self.feature_channel_num = self.feature_channel_num // 6
+        self.ResidualBlock1 = ResidualBlock(
             self.feature_channel_num, self.feature_channel_num
         )
+        
+        self.DenseBlock2 = DenseBlock(
+            layer_num[0], growth_rate, self.feature_channel_num
+        )
+        self.feature_channel_num = self.feature_channel_num + layer_num[0] * growth_rate
+        self.Transition2 = Transition(self.feature_channel_num)
+        
+        self.FeatureAttentionModule2 = FeatureAttentionModule(self.feature_channel_num//2)
+        self.feature_channel_num = self.feature_channel_num // 6
+        self.ResidualBlock2 = ResidualBlock(
+            self.feature_channel_num, self.feature_channel_num
+        )
+        
+        self.DenseBlock3 = DenseBlock(
+            layer_num[0], growth_rate, self.feature_channel_num
+        )
+        self.feature_channel_num = self.feature_channel_num + layer_num[0] * growth_rate
+        self.Transition3 = Transition(self.feature_channel_num)
+        
+        self.FeatureAttentionModule3 = FeatureAttentionModule(self.feature_channel_num//2)
+        self.feature_channel_num = self.feature_channel_num // 6
+        self.ResidualBlock3 = ResidualBlock(
+            self.feature_channel_num, self.feature_channel_num
+        )
+        
         self.avgpool = nn.AdaptiveAvgPool1d(1)
 
         self.classifer = nn.Sequential(
@@ -120,20 +145,20 @@ class DenseNet(nn.Module):
 
         x = self.DenseBlock1(x)
         x = self.Transition1(x)
-        x = self.FeatureAttentionModule(x)
-        x = self.ResidualBlock(x)
+        x = self.FeatureAttentionModule1(x)
+        x = self.ResidualBlock1(x)
         x = self.maxpool(x)
 
-        x = self.DenseBlock1(x)
-        x = self.Transition1(x)
-        x = self.FeatureAttentionModule(x)
-        x = self.ResidualBlock(x)
+        x = self.DenseBlock2(x)
+        x = self.Transition2(x)
+        x = self.FeatureAttentionModule2(x)
+        x = self.ResidualBlock2(x)
         x = self.maxpool(x)
 
-        x = self.DenseBlock1(x)
-        x = self.Transition1(x)
-        x = self.FeatureAttentionModule(x)
-        x = self.ResidualBlock(x)
+        x = self.DenseBlock3(x)
+        x = self.Transition3(x)
+        x = self.FeatureAttentionModule3(x)
+        x = self.ResidualBlock3(x)
         x = self.maxpool(x)
 
         x = x.view(-1, self.feature_channel_num)
