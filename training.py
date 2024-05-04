@@ -1,5 +1,6 @@
 # from model import DenseNet
 from epicmodel import DenseNet
+
 import torch
 import torch.nn as nn
 import time
@@ -29,8 +30,9 @@ SAVE_EVERY = 2
 BATCH_SIZE = 32
 
 # model stuff
-MODEL_PREFIX = "all_wow_"  # please add _ at the end
-PRESAVED_MODEL_PATH = "./saved_models/all_singular_further_4.pth"
+MODEL_PREFIX = "i_am_full_"  # please add _ at the end
+# PRESAVED_MODEL_PATH = "./saved_models/all_singular_further_4.pth"
+PRESAVED_MODEL_PATH = None
 USE_SUBSET = False
 LEN_SUBSET = 10 # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
