@@ -40,7 +40,7 @@ class FeatureAttentionModule(nn.Module):
         super(FeatureAttentionModule, self).__init__()
         self.avg_pool = nn.AvgPool1d(3)
         self.max_pool = nn.MaxPool1d(3)
-        self.conv1 = nn.Conv1d(in_channels // 3, in_channels // 3, 3, padding=1)
+        self.conv1 = nn.Conv1d(in_channels, in_channels, 3, padding=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -98,7 +98,7 @@ class DenseNet(nn.Module):
         self.Transition1 = Transition(self.feature_channel_num)
         
         self.FeatureAttentionModule1 = FeatureAttentionModule(self.feature_channel_num//2)
-        self.feature_channel_num = self.feature_channel_num // 6
+        self.feature_channel_num = self.feature_channel_num // 2
         self.ResidualBlock1 = ResidualBlock(
             self.feature_channel_num, self.feature_channel_num
         )
@@ -110,7 +110,7 @@ class DenseNet(nn.Module):
         self.Transition2 = Transition(self.feature_channel_num)
         
         self.FeatureAttentionModule2 = FeatureAttentionModule(self.feature_channel_num//2)
-        self.feature_channel_num = self.feature_channel_num // 6
+        self.feature_channel_num = self.feature_channel_num // 2
         self.ResidualBlock2 = ResidualBlock(
             self.feature_channel_num, self.feature_channel_num
         )
@@ -122,7 +122,7 @@ class DenseNet(nn.Module):
         self.Transition3 = Transition(self.feature_channel_num)
         
         self.FeatureAttentionModule3 = FeatureAttentionModule(self.feature_channel_num//2)
-        self.feature_channel_num = self.feature_channel_num // 6
+        self.feature_channel_num = self.feature_channel_num // 2
         self.ResidualBlock3 = ResidualBlock(
             self.feature_channel_num, self.feature_channel_num
         )
