@@ -4,7 +4,7 @@ import epicmodel
 import torch
 import torch.nn as nn
 import time
-from montage_loader import PreprocessedDatasetSingular, PreprocessedEEGDataset
+from montage_loader import PreprocessedDatasetSingularMiddle10, PreprocessedEEGDataset
 from torch.utils.data import DataLoader, random_split, Subset
 from rich import print
 import sys
@@ -19,7 +19,7 @@ else:
     torch.cuda.empty_cache()
 
 # some hyperparameters
-TEST_SIZE = 0.2
+TEST_SIZE = 0.01
 LEARNING_RATE = 1e-5
 
 # epochs stuff
@@ -30,9 +30,9 @@ SAVE_EVERY = 3
 BATCH_SIZE = 32
 
 # model stuff
-MODEL_PREFIX = "i_am_amazing_attention_"  # please add _ at the end
+MODEL_PREFIX = "odn_middle10_t2_"  # please add _ at the end
 # PRESAVED_MODEL_PATH = "./saved_models/all_singular_further_4.pth"
-PRESAVED_MODEL_PATH = None
+PRESAVED_MODEL_PATH = "./saved_models/odn_middle10_24.pth"
 USE_SUBSET = False
 LEN_SUBSET = 10  # number of samples to use if USE_SUBSET is True
 # BATCH_COUNT = LEN_SUBSET // BATCH_SIZE if USE_SUBSET else len(train_dataset) // BATCH_SIZE
@@ -64,7 +64,7 @@ def print_params():
 
 
 def main():
-    dataset = PreprocessedDatasetSingular("train_montage_cleaned_10k")  # dataset object
+    dataset = PreprocessedDatasetSingularMiddle10("train_montage_cleaned_10k")  # dataset object
 
     if USE_SUBSET:
         print(
@@ -89,12 +89,12 @@ def main():
             test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS
         )
 
-    # model = oldmodel.DenseNet(
-    #     layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
-    # )  # model
-    model = epicmodel.DenseNet(
-        layer_num=(5,), growth_rate=32, in_channels=4, classes=6
+    model = oldmodel.DenseNet(
+        layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
     )  # model
+    # model = epicmodel.DenseNet(
+    #     layer_num=(5,), growth_rate=32, in_channels=4, classes=6
+    # )  # model
 
     loss_fn = nn.KLDivLoss(reduction="batchmean")  # loss function
     # loss_fn = kaggle_loss_fn
