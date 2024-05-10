@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from epicmodel import DenseNet
+from model import DenseNet
 import torch
 from torch.utils.data import DataLoader, random_split, Subset
 import torch.nn as nn
@@ -13,6 +13,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
 import time
+import json
 
 if sys.platform == "darwin":
     device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -20,11 +21,11 @@ else:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.cuda.empty_cache()
 
-def load_model(model_path="model.pth", print_summary=False):
+def load_model(model_path="./saved_models/all_wow_0.pth", print_summary=False):
 
     model = DenseNet(
-        layer_num=(5,), growth_rate=32, in_channels=4, classes=6
-    )  # model
+        layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
+    )   # model
     if print_summary:
         torchinfo.summary(model)
 
@@ -33,7 +34,7 @@ def load_model(model_path="model.pth", print_summary=False):
     model = model.to(device)
 
 
-    checkpoint = torch.load(model_path)
+    checkpoint = torch.load(model_path,map_location=device)
 
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -80,10 +81,10 @@ def sample_tests(model, loss_fn):
     return test_loss_singular, test_loss_batch
 
 def complete_tests(model, loss_fn, batch_size=32, test_size_used=0.3, test_on_train=False, max_batches=None):
-    dataset = PreprocessedEEGDataset("train_montage_cleaned_10k")
-
+    test_dataset = PreprocessedEEGDataset("train_montage_cleaned_10k")
     torch.manual_seed(0)
-    _, test_dataset = random_split(dataset, [1 - test_size_used, test_size_used])
+    # _, test_dataset = random_split(dataset, [1 - test_size_used, test_size_used])
+    print(f"Test dataset size: {len(test_dataset)}")
     if test_on_train:
         raise NotImplementedError("Test on train not implemented yet")
     
@@ -101,10 +102,11 @@ def complete_tests(model, loss_fn, batch_size=32, test_size_used=0.3, test_on_tr
         max_batches = len(data_loader)
     else:
         max_batches = min(max_batches, len(data_loader))
-    
+    epoch_statistics = {}
     with torch.inference_mode():
         t0 = time.time()
-
+        epoch_statistics["batch_size"] = batch_size
+        epoch_statistics["test_size"] = test_size_used
         for batch_idx, (X, y) in enumerate(tqdm(data_loader, total=max_batches, desc="Testing")):
 
             X = X.to(device)
@@ -113,25 +115,30 @@ def complete_tests(model, loss_fn, batch_size=32, test_size_used=0.3, test_on_tr
             test_pred = model(X)
             test_loss += loss_fn(test_pred, y)
 
-            kaggle_loss = kaggle_loss_fn(test_pred, y)
+            # kaggle_loss = kaggle_loss_fn(test_pred, y)
             classes_pred.extend(np.argmax(test_pred.cpu().detach().numpy(), axis=1))
             classes_true.extend(np.argmax(y.cpu().detach().numpy(), axis=1))
 
             if batch_idx % 5 == 0:
-                tqdm.write(f"Batch {batch_idx}: set loss: {test_loss:.5f} | Kaggle loss (if microavg): {ifmicro_kaggleloss:.6f} | Kaggle loss (if macroavg): {ifnotmicro:.6f}  | time elapsed: {time.time() - t0:.2f}s")
+                tqdm.write(f"Batch {batch_idx}: set loss: {test_loss:.5f} | time elapsed: {time.time() - t0:.2f}s")
             
             if batch_idx >= max_batches:
                 break
 
         test_loss /= max_batches
-
+        epoch_statistics["test_loss"] = test_loss.cpu().detach().numpy().tolist()
+        epoch_statistics["test_time"] = time.time() - t0
+        epoch_statistics["test_true_classes"] = [int(x) for x in classes_true]
+        epoch_statistics["test_pred_classes"] = [int(x) for x in classes_pred]
+        with open(f"./stats/stats_densenet_NOFAM.json", "w") as f:
+            json.dump(epoch_statistics, f)
     return test_loss, np.array(classes_true), np.array(classes_pred)
 
 LEARNING_RATE = 0.001
 MODEL_PATH = f"./saved_models/all_data_new_3.pth"
 
 if __name__ == "__main__":
-    model, loss_fn = load_model(MODEL_PATH)
+    model, loss_fn = load_model("./saved_models/all_wow_0.pth")
 
     # test_losses = sample_tests(model, loss_fn)
     # print(f"Test loss for singular sample: {test_losses[0]:.5f}")

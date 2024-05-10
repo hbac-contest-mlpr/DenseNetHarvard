@@ -93,7 +93,7 @@ def main():
     #     layer_num=(6, 12, 24, 16), growth_rate=32, in_channels=4, classes=6
     # )  # model
     model = epicmodel.DenseNet(
-        layer_num=(5,), growth_rate=32, in_channels=4, classes=6
+        layer_num=(16,), growth_rate=32, in_channels=4, classes=6
     )  # model
 
     loss_fn = nn.KLDivLoss(reduction="batchmean")  # loss function
