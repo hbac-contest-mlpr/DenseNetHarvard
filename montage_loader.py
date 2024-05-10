@@ -2,20 +2,21 @@ from torch.utils.data import Dataset
 import pandas as pd
 import numpy as np
 from pathlib import Path
-
+import pickle
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
 BASE_PATH = Path(
-    "/Users/pranjalrastogi/Desktop/SEM4/MLPR/project/data/competition-data"
+    "../hms-harmful-brain-activity-classification/"
 )
 
 class PreprocessedEEGDataset(Dataset):
     def __init__(self, image_data_directory):
-        data_directory = BASE_PATH / image_data_directory
-        
-        self.data_paths = list(data_directory.glob("*.npy"))
+        # data_directory = BASE_PATH / image_data_directory
+        data_directory = Path(image_data_directory)
+        indices = pickle.load(open("indices.pkl", "rb"))
+        self.data_paths = [list(data_directory.glob("*.npy"))[i] for i in indices]
         self.length = len(self.data_paths)
 
     def __len__(self):
@@ -58,9 +59,8 @@ class PreprocessedEEGDataset(Dataset):
 class PreprocessedDatasetSingular(Dataset):
     def __init__(self, image_data_directory):
         data_directory = BASE_PATH / image_data_directory
-        
+        data_directory = Path(image_data_directory)
         self.data_paths = list(data_directory.glob("*.npy"))
-
         # group data paths by eeg_id
         self.data_paths = {int(x.name.split("_")[0]): x for x in self.data_paths}
         # because its a dict, it auto chooses one
