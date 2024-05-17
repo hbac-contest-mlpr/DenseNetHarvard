@@ -6,4 +6,8 @@ __pycache__/**
 .DS_Store
 
 stats
+<<<<<<< HEAD
+
+=======
 /train_montage_cleaned_10k
+>>>>>>> a1cc963105ced4378cc30a1906880c2c3b337585
