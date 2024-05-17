@@ -130,7 +130,7 @@ def complete_tests(model, loss_fn, batch_size=32, test_size_used=0.3, test_on_tr
         epoch_statistics["test_time"] = time.time() - t0
         epoch_statistics["test_true_classes"] = [int(x) for x in classes_true]
         epoch_statistics["test_pred_classes"] = [int(x) for x in classes_pred]
-        with open(f"./stats/stats_densenet_NOFAM.json", "w") as f:
+        with open(f"./stats/ensemble.json", "w") as f:
             json.dump(epoch_statistics, f)
     return test_loss, np.array(classes_true), np.array(classes_pred)
 
